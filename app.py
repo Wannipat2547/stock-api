@@ -1,33 +1,37 @@
 from fastapi import FastAPI
 import yfinance as yf
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
+import base64
+from io import BytesIO
 
 app = FastAPI()
 
 @app.get("/")
 def home():
-    return {"message": "Stock API running"}
+    return {"status": "Stock API running"}
 
-@app.get("/analyze/{ticker}")
-def analyze_stock(ticker: str):
+@app.post("/analyze")
+def analyze_stock(data: dict):
 
-    df = yf.Ticker(ticker).history(period="6mo")
+    symbol = data["symbol"]
+
+    df = yf.Ticker(symbol).history(period="6mo")
 
     df["MA30"] = df["Close"].rolling(30).mean()
 
     plt.figure(figsize=(10,5))
-    plt.plot(df.index, df["Close"], label="Price")
-    plt.plot(df.index, df["MA30"], label="MA30")
-
+    plt.plot(df["Close"], label="Price")
+    plt.plot(df["MA30"], label="MA30")
     plt.legend()
-    plt.title(f"{ticker} Price with MA30")
 
-    file = f"{ticker}.png"
+    buffer = BytesIO()
+    plt.savefig(buffer, format="png")
+    buffer.seek(0)
 
-    plt.savefig(file)
+    image_base64 = base64.b64encode(buffer.read()).decode()
 
     return {
-        "ticker": ticker,
-        "chart": file
+        "symbol": symbol,
+        "chart": image_base64
     }
