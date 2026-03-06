@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pydantic import BaseModel # นำเข้า BaseModel มาช่วยรับข้อมูล
+from pydantic import BaseModel
 import yfinance as yf
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -17,7 +17,7 @@ def home():
     return {"status": "Stock API running"}
 
 @app.post("/analyze")
-def analyze_stock(data: StockRequest): # เปลี่ยนมารับข้อมูลผ่านคลาสนี้
+def analyze_stock(data: StockRequest): 
 
     symbol = data.symbol # เรียกใช้ผ่าน .symbol
 
@@ -26,6 +26,10 @@ def analyze_stock(data: StockRequest): # เปลี่ยนมารับข
     df["MA30"] = df["Close"].rolling(30).mean()
 
     plt.figure(figsize=(10,5))
+    
+    # 🟢 เพิ่มบรรทัดนี้: ใส่ชื่อหุ้นเป็นหัวข้อกราฟ
+    plt.title(f"Stock Analysis: {symbol.upper()}", fontsize=16, fontweight='bold')
+
     plt.plot(df["Close"], label="Price")
     plt.plot(df["MA30"], label="MA30")
     plt.legend()
